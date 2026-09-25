@@ -3,11 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.database import Base, engine, SessionLocal
 from app.models.user import User
+from app.seed.seed import seed_user
 from app.routers import auth, hosted_zones, dns_records
 
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+# Seed default admin user
+seed_user()
 
 
 app = FastAPI(
