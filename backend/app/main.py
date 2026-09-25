@@ -1,38 +1,47 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.core.database import Base, engine
-
-from app.models.hosted_zone import HostedZone
-from app.models.dns_record import DNSRecord
+from app.core.database import Base, engine, SessionLocal
 from app.models.user import User
-from app.models.session import Session
-
-from app.routers.hosted_zones import router as hosted_zones_router
-from app.routers.dns_records import router as dns_records_router
-from app.routers.auth import router as auth_router
+from app.routers import auth, hosted_zones, dns_records
 
 
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI(title="AWS Route53 Clone")
+app = FastAPI(
+    title="Route 53 Clone API",
+    version="1.0.0",
+)
 
 
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://route53-clone-iota.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-app.include_router(hosted_zones_router)
-app.include_router(dns_records_router)
-app.include_router(auth_router)
+# API routers
+app.include_router(auth.router)
+app.include_router(hosted_zones.router)
+app.include_router(dns_records.router)
 
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/")
+def root():
+    return {
+        "message": "Route 53 Clone API is running"
+    }
